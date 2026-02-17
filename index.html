@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calibre9 - SEO Revenue Forecasting Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@200;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --accent:#ff00ff;--accent-light:#ff66ff;
+  --success:#00ff00;--indigo:#6610f2;
+  --warn:#ffcc00;--danger:#ff3333;
+  --bg:#1a1a1a;--bg2:#1f1f1f;--card:#242424;
+  --fg:#ffffff;--fg2:#b0b0b0;
+  --border:#3a3a3a;--input:#1f1f1f;
+}
+body{font-family:'Montserrat',sans-serif;font-size:15px;background:linear-gradient(135deg,var(--bg),var(--bg2));color:var(--fg);min-height:100vh;padding:2rem;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,rgba(255,0,255,0.07) 0%,transparent 70%);pointer-events:none;animation:pulse 8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(1);}50%{opacity:.5;transform:scale(1.1);}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-30px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+.container{max-width:1600px;margin:0 auto;position:relative;z-index:1;}
+header{text-align:center;margin-bottom:2.5rem;animation:slideDown .6s ease-out;}
+h1{font-family:'Bebas Neue',sans-serif;font-size:4.5rem;letter-spacing:-0.02em;background:linear-gradient(135deg,var(--accent),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-transform:uppercase;}
+.subtitle{font-family:'Oswald',sans-serif;font-weight:200;color:var(--fg2);font-size:1.4rem;letter-spacing:-0.02em;text-transform:uppercase;}
+.brand-input{margin:1.5rem auto;max-width:400px;}
+.brand-input input{width:100%;padding:1rem 1.5rem;background:var(--input);border:2px solid var(--border);border-radius:12px;color:var(--fg);font-size:1rem;font-family:'Montserrat',sans-serif;text-align:center;transition:all .3s;}
+.brand-input input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px rgba(255,0,255,.1);}
+
+/* ── MODE TOGGLE ── */
+.mode-toggle{display:flex;justify-content:center;margin-bottom:2rem;gap:0;}
+.mode-btn{padding:.85rem 3rem;font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;letter-spacing:-.02em;text-transform:uppercase;border:2px solid var(--border);background:transparent;color:var(--fg2);cursor:pointer;transition:all .3s;}
+.mode-btn:first-child{border-radius:12px 0 0 12px;}
+.mode-btn:last-child{border-radius:0 12px 12px 0;}
+.mode-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-light));border-color:var(--accent);color:#fff;}
+.mode-badge{display:inline-block;margin-left:.5rem;padding:.1rem .5rem;font-size:.7rem;border-radius:20px;background:rgba(0,255,0,.2);color:var(--success);border:1px solid var(--success);}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:1.5rem;margin-bottom:1.5rem;}
+.card{background:var(--card);border-radius:16px;padding:1.75rem;border:1px solid var(--border);box-shadow:0 10px 40px rgba(0,0,0,.3);transition:all .4s;animation:fadeIn .5s ease-out backwards;}
+.card:hover{transform:translateY(-3px);box-shadow:0 15px 50px rgba(0,0,0,.4);}
+.c12{grid-column:span 12;}.c8{grid-column:span 8;}.c6{grid-column:span 6;}.c4{grid-column:span 4;}.c3{grid-column:span 3;}
+@media(max-width:1100px){.c8,.c6,.c4,.c3{grid-column:span 12;}}
+
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:-.02em;color:var(--fg);margin-bottom:1.25rem;display:flex;align-items:center;gap:.7rem;text-transform:uppercase;}
+.card-title .icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),var(--accent-light));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+
+/* ── INPUTS ── */
+.igroup{margin-bottom:1.25rem;}
+.igroup label{display:block;font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:700;color:var(--fg2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:-.02em;}
+.igroup input,.igroup select{width:100%;padding:.8rem 1.1rem;background:var(--input);border:1px solid var(--border);border-radius:10px;color:var(--fg);font-size:.95rem;font-family:'Montserrat',sans-serif;transition:all .3s;}
+.igroup input:focus,.igroup select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,0,255,.1);}
+.igroup input.optional{border-style:dashed;border-color:#555;}
+.igroup input.optional:focus{border-style:solid;}
+.opt-label{font-size:.7rem;color:#666;font-style:italic;margin-left:.4rem;}
+.igrid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.igrid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+@media(max-width:900px){.igrid4{grid-template-columns:1fr 1fr;}}
+
+/* ── HELPERS & BADGES ── */
+.hint{font-size:.78rem;color:var(--fg2);font-style:italic;margin-top:.4rem;padding:.6rem .8rem;background:rgba(255,0,255,.05);border-radius:6px;border-left:3px solid var(--accent);}
+.warn-hint{border-left-color:var(--warn);background:rgba(255,204,0,.05);}
+.badge{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .9rem;border-radius:20px;font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:-.02em;}
+.badge-green{background:rgba(0,255,0,.15);border:1px solid var(--success);color:var(--success);}
+.badge-magenta{background:rgba(255,0,255,.15);border:1px solid var(--accent);color:var(--accent);}
+.badge-indigo{background:rgba(102,16,242,.2);border:1px solid var(--indigo);color:#a78bfa;}
+.badge-warn{background:rgba(255,204,0,.15);border:1px solid var(--warn);color:var(--warn);}
+.badge-danger{background:rgba(255,51,51,.15);border:1px solid var(--danger);color:var(--danger);}
+
+/* ── METRIC CARD ── */
+.mcard{background:linear-gradient(135deg,#242424,#1a1a1a);padding:1.25rem;border-radius:12px;text-align:center;border:1px solid var(--indigo);}
+.mcard-label{font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:-.02em;margin-bottom:.4rem;}
+.mcard-value{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:-.02em;color:var(--fg);}
+.mcard-value.green{color:var(--success);}
+.mcard-value.magenta{background:linear-gradient(135deg,var(--accent),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ── CONFIDENCE METER ── */
+.conf-meter{margin-top:1rem;}
+.conf-label{display:flex;justify-content:space-between;margin-bottom:.4rem;font-size:.8rem;color:var(--fg2);font-weight:700;}
+.conf-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.conf-fill{height:100%;border-radius:4px;transition:width .6s ease;background:linear-gradient(90deg,var(--indigo),var(--accent),var(--success));}
+
+/* ── SCENARIO TABS ── */
+.stabs{display:flex;gap:.4rem;margin-bottom:1.25rem;border-bottom:2px solid var(--border);padding-bottom:.4rem;}
+.stab{padding:.6rem 1.2rem;background:transparent;border:none;color:var(--fg2);font-family:'Montserrat',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .3s;border-radius:6px 6px 0 0;position:relative;letter-spacing:-.02em;}
+.stab.active{color:var(--accent);background:rgba(255,0,255,.1);}
+.stab.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--accent);}
+
+/* ── RESULTS ── */
+.results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.25rem;}
+@media(max-width:800px){.results-grid{grid-template-columns:1fr;}}
+.result-box{background:var(--input);padding:1.25rem;border-radius:12px;border:1px solid var(--border);text-align:center;transition:all .3s;}
+.result-box:hover{transform:translateY(-2px);}
+.result-box.cons{border-left:4px solid var(--indigo);}
+.result-box.mod{border-left:4px solid var(--success);}
+.result-box.opt{border-left:4px solid var(--accent);}
+.result-box h4{font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:700;color:var(--fg2);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:-.02em;}
+.rval{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:-.02em;color:var(--fg);margin-bottom:.3rem;}
+.rlabel{font-size:.82rem;color:var(--fg2);}
+.rdiv{margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);}
+
+/* ── CHART ── */
+.chart-wrap{position:relative;height:310px;margin-top:.75rem;}
+.chart-wrap-tall{position:relative;height:360px;margin-top:.75rem;}
+
+/* ── AHREFS PANEL ── */
+.ahrefs-section{background:rgba(102,16,242,.08);border:1px solid var(--indigo);border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;}
+.ahrefs-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:-.02em;color:#a78bfa;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.ahrefs-section-title span{font-size:1rem;}
+
+/* ── SIGNAL INDICATORS ── */
+.signals{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem;}
+.signal-item{padding:.4rem .8rem;border-radius:8px;font-size:.78rem;font-weight:700;font-family:'Montserrat',sans-serif;}
+
+/* ── DR GAUGE ── */
+.kd-bar-wrap{margin-top:.5rem;}
+.kd-bar-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--fg2);margin-bottom:.3rem;}
+.kd-bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.kd-bar-fill{height:100%;border-radius:3px;transition:width .5s ease;}
+
+/* ── TIMELINE BADGE ── */
+.timeline-badge{display:inline-block;padding:.4rem .9rem;background:rgba(0,255,0,.15);border:1px solid var(--success);border-radius:20px;font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:700;color:var(--success);letter-spacing:-.02em;}
+
+/* ── NOTE SECTION ── */
+.note-section{background:var(--input);padding:1.5rem;border-radius:12px;border-left:4px solid var(--accent);margin-top:1.5rem;}
+.note-section h3{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;margin-bottom:.75rem;color:var(--accent);letter-spacing:-.02em;text-transform:uppercase;}
+.note-section ul{list-style:none;padding:0;}
+.note-section li{padding:.4rem 0;padding-left:1.4rem;position:relative;color:var(--fg2);line-height:1.6;font-size:.88rem;}
+.note-section li::before{content:'→';position:absolute;left:0;color:var(--accent);font-weight:700;}
+
+/* ── ADVANCED HIDDEN ── */
+.advanced-only{display:none;}
+.basic-only{}
+
+footer{text-align:center;margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--fg2);font-size:.85rem;}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <h1>Calibre9</h1>
+    <p class="subtitle">SEO Revenue Forecasting Dashboard</p>
+    <div class="brand-input">
+      <input type="text" id="brandName" placeholder="Enter Client / Brand Name" value="Your Brand">
+    </div>
+  </header>
+
+  <!-- MODE TOGGLE -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btnBasic" onclick="setMode('basic')">Basic</button>
+    <button class="mode-btn" id="btnAdvanced" onclick="setMode('advanced')">Advanced <span class="mode-badge">Ahrefs</span></button>
+  </div>
+
+  <!-- ══════════════════════════════════
+       ROW 1 — CORE INPUTS
+  ══════════════════════════════════ -->
+  <div class="grid" id="coreGrid">
+
+    <!-- Core Metrics -->
+    <div class="card c4">
+      <h2 class="card-title"><span class="icon">⚙️</span>Core Metrics</h2>
+      <div class="igroup">
+        <label>Conversion Rate (%)</label>
+        <input type="number" id="conversionRate" value="3.2" step="0.1" min="0">
+      </div>
+      <div class="igroup">
+        <label>Average Order Value ($)</label>
+        <input type="number" id="aov" value="285" step="1" min="0">
+      </div>
+      <div class="igroup">
+        <label>% Commercial Keywords</label>
+        <input type="number" id="commercialPercent" value="42" step="1" min="0" max="100">
+      </div>
+      <div class="igroup">
+        <label>Current Monthly Traffic</label>
+        <input type="number" id="currentTraffic" value="2800" step="1" min="0">
+        <p class="hint">💡 Organic visitors from Google Analytics / Search Console</p>
+      </div>
+    </div>
+
+    <!-- Keyword Data -->
+    <div class="card c8">
+      <h2 class="card-title"><span class="icon">🔍</span>Keyword Opportunity <span id="dataSourceBadge" class="badge badge-indigo" style="font-size:.7rem;margin-left:.5rem;">Basic Mode</span></h2>
+
+      <div class="igrid2">
+        <div class="igroup">
+          <label>Current Rankings (4–50) — Count</label>
+          <input type="number" id="currentKeywords" value="280" min="0">
+        </div>
+        <div class="igroup">
+          <label>Current Rankings (4–50) — Search Volume</label>
+          <input type="number" id="currentVolume" value="85000" min="0">
+        </div>
+        <div class="igroup">
+          <label>Competitor Gap Keywords — Count</label>
+          <input type="number" id="gapKeywords" value="320" min="0">
+        </div>
+        <div class="igroup">
+          <label>Competitor Gap — Search Volume</label>
+          <input type="number" id="gapVolume" value="95000" min="0">
+        </div>
+      </div>
+
+      <!-- ADVANCED: Ahrefs inputs -->
+      <div class="advanced-only">
+        <div class="ahrefs-section">
+          <div class="ahrefs-section-title"><span>🟣</span> Ahrefs — Client Profile (Steps 1 &amp; 2) · Site Explorer → Organic Keywords → filter pos 4–50</div>
+          <div class="igrid4">
+            <div class="igroup">
+              <label>Client Domain Rating <span class="opt-label">optional</span></label>
+              <input type="number" id="clientDR" class="optional" placeholder="e.g. 42" min="0" max="100">
+            </div>
+            <div class="igroup">
+              <label>Client Ref. Domains <span class="opt-label">optional</span></label>
+              <input type="number" id="clientRD" class="optional" placeholder="e.g. 850" min="0">
+            </div>
+            <div class="igroup">
+              <label>Avg. Competitor DR <span class="opt-label">optional</span></label>
+              <input type="number" id="compDR" class="optional" placeholder="e.g. 58" min="0" max="100">
+            </div>
+            <div class="igroup">
+              <label>Avg. Competitor Ref. Domains <span class="opt-label">optional</span></label>
+              <input type="number" id="compRD" class="optional" placeholder="e.g. 1400" min="0">
+            </div>
+          </div>
+          <div class="ahrefs-section-title" style="margin-top:.75rem;"><span>🔑</span> Ahrefs — Keyword Data (Steps 3 &amp; 4) — Export positions 4–50</div>
+          <div class="igrid4">
+            <div class="igroup">
+              <label>Avg. Keyword Difficulty (KD) <span class="opt-label">optional</span></label>
+              <input type="number" id="avgKD" class="optional" placeholder="0–100" min="0" max="100">
+            </div>
+            <div class="igroup">
+              <label>% SERP Features (snippets etc.) <span class="opt-label">optional</span></label>
+              <input type="number" id="serpFeaturePct" class="optional" placeholder="e.g. 25" min="0" max="100">
+            </div>
+            <div class="igroup">
+              <label>Avg. CPC of Gap Keywords ($) <span class="opt-label">optional</span></label>
+              <input type="number" id="avgCPC" class="optional" placeholder="e.g. 1.80" step="0.01" min="0">
+            </div>
+            <div class="igroup">
+              <label>Client Org. Traffic (Ahrefs) <span class="opt-label">optional</span></label>
+              <input type="number" id="ahrefsTraffic" class="optional" placeholder="e.g. 4200" min="0">
+            </div>
+          </div>
+
+          <!-- Computed signals -->
+          <div id="ahrefsSignals" class="signals"></div>
+        </div>
+      </div>
+
+      <div class="mcard" style="margin-top:.75rem;">
+        <div class="mcard-label">Total Keyword Opportunity</div>
+        <div class="mcard-value magenta" id="totalOpportunity">600 Keywords · 180,000 Volume</div>
+      </div>
+    </div>
+
+  </div><!-- /ROW 1 -->
+
+  <!-- ══════════════════════════════════
+       ROW 2 — MODELLING INPUTS
+  ══════════════════════════════════ -->
+  <div class="grid">
+
+    <!-- Forecast Scenarios -->
+    <div class="card c4">
+      <h2 class="card-title"><span class="icon">🎯</span>Forecast Scenarios</h2>
+      <div class="stabs">
+        <button class="stab active" onclick="switchScenario('conservative',event)">Conservative</button>
+        <button class="stab" onclick="switchScenario('moderate',event)">Moderate</button>
+        <button class="stab" onclick="switchScenario('optimistic',event)">Optimistic</button>
+      </div>
+
+      <div style="background:rgba(102,16,242,.08);border-radius:10px;padding:.85rem;margin-bottom:.85rem;border:1px solid rgba(102,16,242,.3);">
+        <div style="font-family:'Montserrat',sans-serif;font-size:.72rem;font-weight:700;color:#a78bfa;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:.65rem;">🏆 Positions 1–5 (High CTR Band)</div>
+        <div class="igrid2">
+          <div class="igroup" style="margin-bottom:0;">
+            <label>% Keywords Reaching Top 5</label>
+            <input type="number" id="scenarioTop5Reach" value="20" step="1" min="0" max="100">
+          </div>
+          <div class="igroup" style="margin-bottom:0;">
+            <label>Blended CTR Pos 1–5 (%)</label>
+            <input type="number" id="scenarioTop5CTR" value="15" step="0.1" min="0" max="100">
+          </div>
+        </div>
+      </div>
+
+      <div style="background:rgba(0,255,0,.05);border-radius:10px;padding:.85rem;margin-bottom:.85rem;border:1px solid rgba(0,255,0,.2);">
+        <div style="font-family:'Montserrat',sans-serif;font-size:.72rem;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:-.02em;margin-bottom:.65rem;">📊 Positions 6–10 (Additional Band)</div>
+        <div class="igrid2">
+          <div class="igroup" style="margin-bottom:0;">
+            <label>% Keywords Reaching 6–10</label>
+            <input type="number" id="scenarioTop10Reach" value="35" step="1" min="0" max="100">
+          </div>
+          <div class="igroup" style="margin-bottom:0;">
+            <label>Blended CTR Pos 6–10 (%)</label>
+            <input type="number" id="scenarioTop10CTR" value="4" step="0.1" min="0" max="100">
+          </div>
+        </div>
+      </div>
+
+      <p class="hint">🔧 CTR values from Advanced Web Ranking / industry tool</p>
+      <div class="timeline-badge" id="timeline" style="margin-top:.75rem;display:block;">Full results: Month 9–12</div>
+
+      <!-- Confidence score -->
+      <div class="conf-meter" style="margin-top:.85rem;">
+        <div class="conf-label"><span>Model Confidence</span><span id="confScore">—</span></div>
+        <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%"></div></div>
+        <p class="hint" id="confNote" style="margin-top:.5rem;"></p>
+      </div>
+    </div>
+
+    <!-- ROI Calculator -->
+    <div class="card c4">
+      <h2 class="card-title"><span class="icon">💰</span>ROI Calculator</h2>
+      <div class="igroup">
+        <label>Monthly SEO Investment ($)</label>
+        <input type="number" id="seoInvestment" value="5000" step="100" min="0">
+        <p class="hint">💡 Agency fees + content + technical work</p>
+      </div>
+      <div class="mcard">
+        <div class="mcard-label">Expected ROI (12 Months)</div>
+        <div class="mcard-value green" id="roiPercentage">—</div>
+      </div>
+      <div style="margin-top:.85rem;padding:1rem;background:var(--input);border-radius:8px;font-size:.88rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;">
+          <span style="color:var(--fg2)">Total Investment</span>
+          <span style="font-weight:700;" id="totalInvestment">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;">
+          <span style="color:var(--fg2)">Revenue Gain (moderate)</span>
+          <span style="color:var(--success);font-weight:700;" id="revenueGain">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding-top:.5rem;border-top:1px solid var(--border);">
+          <span style="color:var(--fg2)">Payback Period</span>
+          <span style="color:var(--accent);font-weight:700;" id="paybackPeriod">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seasonality -->
+    <div class="card c4">
+      <h2 class="card-title"><span class="icon">📅</span>Seasonality</h2>
+      <div class="igroup">
+        <label>Industry Type</label>
+        <select id="industryType">
+          <option value="none">No Seasonality</option>
+          <option value="retail">Retail (Q4 Peak)</option>
+          <option value="travel">Travel (Summer Peak)</option>
+          <option value="fitness">Fitness (Jan / Summer Peak)</option>
+          <option value="tax">Tax Services (Q1 Peak)</option>
+          <option value="b2b">B2B (Low Summer)</option>
+          <option value="ecomm">E-commerce (Black Friday)</option>
+          <option value="edu">Education (Sep / Jan)</option>
+        </select>
+      </div>
+      <div class="igroup">
+        <label>Campaign Start Month</label>
+        <select id="startMonth">
+          <option value="0">January</option><option value="1">February</option>
+          <option value="2">March</option><option value="3">April</option>
+          <option value="4">May</option><option value="5">June</option>
+          <option value="6">July</option><option value="7">August</option>
+          <option value="8">September</option><option value="9">October</option>
+          <option value="10">November</option><option value="11">December</option>
+        </select>
+      </div>
+      <div class="mcard" style="margin-top:.75rem;">
+        <div class="mcard-label">Peak Month Uplift</div>
+        <div class="mcard-value" id="peakImpact">+0%</div>
+      </div>
+      <p class="hint" style="margin-top:.75rem;">🌊 Adjusts monthly revenue using industry seasonality curves</p>
+    </div>
+
+  </div><!-- /ROW 2 -->
+
+  <!-- ══════════════════════════════════
+       ROW 3 — ADVANCED: DR / KD ANALYSIS
+  ══════════════════════════════════ -->
+  <div class="grid advanced-only" id="ahrefsAnalysisRow">
+    <div class="card c12">
+      <h2 class="card-title"><span class="icon">🟣</span>Ahrefs-Powered Model Adjustments</h2>
+      <div class="igrid4" style="gap:1.25rem;">
+
+        <div>
+          <div class="mcard-label">DR Gap Analysis</div>
+          <div id="drGaugeWrap">
+            <div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter DR values above</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="mcard-label">Ranking Probability by KD</div>
+          <div id="kdBarsWrap">
+            <div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter KD above</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="mcard-label">Backlink Gap</div>
+          <div id="backlinkGapWrap">
+            <div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter domain data above</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="mcard-label">Commercial Intent Score</div>
+          <div id="commercialIntentWrap">
+            <div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter CPC above</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Adjustment summary -->
+      <div id="adjustmentSummary" style="margin-top:1.25rem;padding:1rem;background:rgba(102,16,242,.1);border-radius:10px;border:1px solid var(--indigo);display:none;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#a78bfa;margin-bottom:.75rem;letter-spacing:-.02em;">MODEL ADJUSTMENT FACTORS APPLIED</div>
+        <div id="adjustmentItems" style="display:flex;flex-wrap:wrap;gap:.6rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       ROW 4 — REVENUE PROJECTIONS
+  ══════════════════════════════════ -->
+  <div class="grid">
+    <div class="card c12">
+      <h2 class="card-title"><span class="icon">💵</span>Revenue Projections — Incremental
+        <span id="modelBadge" class="badge badge-indigo" style="margin-left:auto;font-size:.75rem;">Basic Model</span>
+      </h2>
+      <div class="results-grid">
+        <div class="result-box cons">
+          <h4>Conservative <span id="consTimeBadge" class="badge badge-indigo" style="font-size:.65rem;">3–6 mo</span></h4>
+          <div class="rval" id="revenueConservative">$0</div>
+          <div class="rlabel">Monthly Revenue</div>
+          <div class="rdiv">
+            <div class="rlabel">Annual (with seasonality)</div>
+            <div class="rval" style="font-size:2rem;" id="annualConservative">$0</div>
+          </div>
+        </div>
+        <div class="result-box mod">
+          <h4>Moderate <span id="modTimeBadge" class="badge badge-green" style="font-size:.65rem;">6–12 mo</span></h4>
+          <div class="rval" id="revenueModerate">$0</div>
+          <div class="rlabel">Monthly Revenue</div>
+          <div class="rdiv">
+            <div class="rlabel">Annual (with seasonality)</div>
+            <div class="rval" style="font-size:2rem;" id="annualModerate">$0</div>
+          </div>
+        </div>
+        <div class="result-box opt">
+          <h4>Optimistic <span id="optTimeBadge" class="badge badge-magenta" style="font-size:.65rem;">12+ mo</span></h4>
+          <div class="rval" id="revenueOptimistic">$0</div>
+          <div class="rlabel">Monthly Revenue</div>
+          <div class="rdiv">
+            <div class="rlabel">Annual (with seasonality)</div>
+            <div class="rval" style="font-size:2rem;" id="annualOptimistic">$0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       CHARTS
+  ══════════════════════════════════ -->
+  <div class="grid">
+    <div class="card c4">
+      <h2 class="card-title"><span class="icon">📈</span>Traffic Projection</h2>
+      <div class="chart-wrap"><canvas id="trafficChart"></canvas></div>
+    </div>
+    <div class="card c4">
+      <h2 class="card-title"><span class="icon">📊</span>Revenue Comparison</h2>
+      <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+    </div>
+    <div class="card c4">
+      <h2 class="card-title"><span class="icon">🎲</span>Monte Carlo Forecast
+        <button onclick="runMonteCarlo()" style="margin-left:auto;padding:.4rem 1rem;background:linear-gradient(135deg,var(--accent),var(--accent-light));border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:.78rem;letter-spacing:-.02em;text-transform:uppercase;">Run</button>
+      </h2>
+      <div class="igroup" style="margin-bottom:.75rem;">
+        <label>Simulations</label>
+        <input type="number" id="monteCarloIterations" value="1000" min="100" max="10000" step="100">
+      </div>
+      <div class="chart-wrap" style="height:240px;"><canvas id="monteCarloChart"></canvas></div>
+      <div id="monteCarloStats" style="margin-top:.75rem;display:none;padding:.85rem;background:var(--input);border-radius:8px;">
+        <div style="margin-bottom:.6rem;padding-bottom:.6rem;border-bottom:1px solid var(--border);">
+          <div style="color:var(--fg2);font-size:.78rem;margin-bottom:.2rem;">Month 12 Range</div>
+          <div style="font-weight:700;font-size:.95rem;" id="mcRange">—</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.82rem;">
+          <div><div style="color:var(--fg2)">Median (P50)</div><div style="font-weight:700;" id="mcMedian">—</div></div>
+          <div><div style="color:var(--fg2)">Average</div><div style="font-weight:700;" id="mcMean">—</div></div>
+          <div><div style="color:var(--fg2)">Conservative (P10)</div><div style="font-weight:700;color:#a78bfa;" id="mcP10">—</div></div>
+          <div><div style="color:var(--fg2)">Optimistic (P90)</div><div style="font-weight:700;color:var(--accent);" id="mcP90">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       NOTES
+  ══════════════════════════════════ -->
+  <div class="note-section">
+    <h3>Methodology &amp; Assumptions</h3>
+    <ul>
+      <li><strong>Current Rankings (4–50):</strong> Captures all keywords where the client has an existing relevance signal with Google. Positions 21–50 generate near-zero current traffic but are significantly easier to move to top 5 than unranked keywords, making them high-value opportunities. Export via Ahrefs Site Explorer → Organic Keywords → filter Position 4–50.</li>
+      <li><strong>Commercial Keywords:</strong> Transactional/commercial intent queries identified by CPC &gt; $0.50 or intent modifiers (buy, best, review, vs, price)</li>
+      <li><strong>Blended CTR:</strong> Industry-specific CTR for positions 1–5 from Advanced Web Ranking or equivalent tool — left blank intentionally for per-client input</li>
+      <li><strong>Incremental Traffic Split:</strong> Current rankings (4–50) generate incremental traffic = projected top-5 traffic minus existing baseline. Positions 21–50 contribute near-zero current traffic but significant opportunity volume. Competitor gap keywords are treated as 100% incremental since the client has zero current ranking for them.</li>
+      <li><strong>Two-Band Ranking Model:</strong> Keywords are split across two position bands — Positions 1–5 (high-CTR, ~15–22% blended) and Positions 6–10 (lower-CTR, ~4–5% blended). Conservative assumes 20% of keywords reach top 5 and an additional 35% reach positions 6–10, making the floor more realistic. Timeline reflects when full traffic materialises, not when work starts.</li>
+      <li><strong>Advanced Mode — KD Weighting:</strong> % of keywords reaching top 5 adjusted per KD band (Easy &lt;30 / Medium 30–60 / Hard 60+) using DR-gated probability table</li>
+      <li><strong>Advanced Mode — Backlink Gap:</strong> Timeline extended if referring domain gap is large. Small (&lt;50): standard. Medium (50–200): +25% timeline. Large (&gt;200): +50% timeline</li>
+      <li><strong>Advanced Mode — SERP Feature Discount:</strong> CTR reduced proportionally for keywords dominated by featured snippets, shopping, or local packs</li>
+      <li><strong>Advanced Mode — CPC / Commercial Intent:</strong> High avg CPC (&gt;$2) boosts commercial keyword % estimate. Low CPC reduces it</li>
+      <li><strong>Seasonality:</strong> Industry-specific monthly multipliers applied to annual projections and Monte Carlo. Based on Google Trends patterns</li>
+      <li><strong>Monte Carlo:</strong> S-curve growth trajectories with randomised ramp speed, CTR variance, CVR variance, and seasonal noise. P10–P90 confidence band shown over 12 months</li>
+      <li><strong>Missing Inputs:</strong> Any optional field left blank defaults to neutral (no adjustment). The model degrades gracefully — all scenarios remain calculable</li>
+    </ul>
+  </div>
+
+  <footer><p>Calibre9 SEO Revenue Forecasting Dashboard · All projections are estimates based on industry benchmarks and Ahrefs data</p></footer>
+
+</div><!-- /container -->
+
+<script>
+// ─────────────────────────────────────────
+//  CONSTANTS & STATE
+// ─────────────────────────────────────────
+const SEASONALITY = {
+  none:   [1,1,1,1,1,1,1,1,1,1,1,1],
+  retail: [0.85,0.85,0.9,0.95,1.0,1.0,1.0,1.05,1.1,1.2,1.4,1.5],
+  travel: [0.7,0.75,0.85,0.95,1.1,1.3,1.4,1.35,1.1,0.9,0.8,0.75],
+  fitness:[1.5,1.3,1.1,0.95,0.9,1.0,1.1,1.0,0.95,0.9,0.85,0.9],
+  tax:    [1.8,1.6,1.4,1.2,0.8,0.7,0.7,0.7,0.8,0.9,1.0,1.2],
+  b2b:    [1.1,1.1,1.15,1.2,1.1,0.8,0.7,0.75,1.0,1.15,1.2,0.9],
+  ecomm:  [0.9,0.85,0.9,0.95,1.0,1.0,1.05,1.05,1.1,1.2,1.5,1.6],
+  edu:    [0.85,0.9,1.0,1.05,1.0,0.8,0.7,0.8,1.3,1.3,1.1,0.95]
+};
+
+// Two-band model: top 5 (high CTR) + top 6-10 (lower CTR)
+// Timeline reflects when FULL results materialise, not when work starts
+const SCENARIO_DEFAULTS = {
+  conservative:{ 
+    top5reach:20,  top5ctr:15,
+    top10reach:35, top10ctr:4,
+    fullResultsMonth:10,
+    timeline:'Full results: Month 9–12'
+  },
+  moderate:{ 
+    top5reach:32,  top5ctr:18,
+    top10reach:45, top10ctr:4.5,
+    fullResultsMonth:7,
+    timeline:'Full results: Month 6–9'
+  },
+  optimistic:{ 
+    top5reach:45,  top5ctr:22,
+    top10reach:55, top10ctr:5,
+    fullResultsMonth:4,
+    timeline:'Full results: Month 3–6'
+  }
+};
+
+let currentScenario = 'conservative';
+let mode = 'basic'; // 'basic' | 'advanced'
+let trafficChart, revenueChart, monteCarloChart;
+
+// ─────────────────────────────────────────
+//  MODE TOGGLE
+// ─────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnBasic').classList.toggle('active', m === 'basic');
+  document.getElementById('btnAdvanced').classList.toggle('active', m === 'advanced');
+
+  document.querySelectorAll('.advanced-only').forEach(el => {
+    if (m === 'advanced') {
+      el.style.display = el.classList.contains('grid') ? 'grid' : 'block';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+
+  document.getElementById('dataSourceBadge').textContent = m === 'advanced' ? 'Ahrefs Mode' : 'Basic Mode';
+  document.getElementById('modelBadge').textContent = m === 'advanced' ? 'Ahrefs-Adjusted Model' : 'Basic Model';
+  calculate();
+}
+
+// ─────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────
+const $v = id => parseFloat(document.getElementById(id)?.value) || null;
+const $s = id => document.getElementById(id)?.value;
+const fmt = n => new Intl.NumberFormat('en-US').format(Math.round(n));
+const fmtC = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(n));
+
+function seasonalMultipliers() {
+  const type = $s('industryType') || 'none';
+  const start = parseInt($s('startMonth') || '0');
+  const base = SEASONALITY[type] || SEASONALITY.none;
+  return Array.from({length:12}, (_,i) => base[(start+i)%12]);
+}
+
+// ─────────────────────────────────────────
+//  AHREFS ADJUSTMENT MODEL
+// ─────────────────────────────────────────
+function computeAhrefsAdjustments() {
+  const clientDR  = $v('clientDR');
+  const compDR    = $v('compDR');
+  const clientRD  = $v('clientRD');
+  const compRD    = $v('compRD');
+  const avgKD     = $v('avgKD');
+  const serpPct   = $v('serpFeaturePct');
+  const cpc       = $v('avgCPC');
+
+  let reachMultiplier = 1;
+  let ctrMultiplier   = 1;
+  let commercialMultiplier = 1;
+  let timelineShift = 0; // months to add
+  let confidence = 40; // base confidence for basic
+  let adjustments = [];
+  let signals = [];
+
+  if (mode === 'advanced') {
+    confidence = 55; // advanced baseline
+
+    // ── DR vs competitor DR ──
+    if (clientDR !== null && compDR !== null) {
+      confidence += 10;
+      const drGap = compDR - clientDR;
+      if (drGap > 20) {
+        reachMultiplier *= 0.55;
+        adjustments.push({ label:'DR Gap >20pts', value:'−45% reach', color:'danger' });
+        signals.push({ text:`DR Gap: ${drGap.toFixed(0)} pts`, color:'badge-danger' });
+      } else if (drGap > 10) {
+        reachMultiplier *= 0.75;
+        adjustments.push({ label:'DR Gap 10–20pts', value:'−25% reach', color:'warn' });
+        signals.push({ text:`DR Gap: ${drGap.toFixed(0)} pts`, color:'badge-warn' });
+      } else if (drGap > 0) {
+        reachMultiplier *= 0.9;
+        adjustments.push({ label:'DR Gap <10pts', value:'−10% reach', color:'warn' });
+        signals.push({ text:`DR Gap: ${drGap.toFixed(0)} pts`, color:'badge-warn' });
+      } else {
+        reachMultiplier *= 1.1;
+        adjustments.push({ label:'Client DR ≥ Competitor', value:'+10% reach', color:'green' });
+        signals.push({ text:`DR Advantage: ${Math.abs(drGap).toFixed(0)} pts`, color:'badge-green' });
+      }
+    }
+
+    // ── KD-based ranking probability ──
+    if (avgKD !== null) {
+      confidence += 10;
+      if (avgKD <= 30) {
+        reachMultiplier *= 1.3;
+        adjustments.push({ label:`Low KD (${avgKD})`, value:'+30% reach', color:'green' });
+        signals.push({ text:`KD ${avgKD} — Easy`, color:'badge-green' });
+      } else if (avgKD <= 60) {
+        // neutral
+        adjustments.push({ label:`Medium KD (${avgKD})`, value:'no change', color:'neutral' });
+        signals.push({ text:`KD ${avgKD} — Medium`, color:'badge-warn' });
+      } else {
+        reachMultiplier *= 0.65;
+        adjustments.push({ label:`High KD (${avgKD})`, value:'−35% reach', color:'danger' });
+        signals.push({ text:`KD ${avgKD} — Hard`, color:'badge-danger' });
+      }
+    }
+
+    // ── Backlink gap → timeline ──
+    if (clientRD !== null && compRD !== null) {
+      confidence += 8;
+      const rdGap = compRD - clientRD;
+      if (rdGap > 200) {
+        timelineShift = 4;
+        adjustments.push({ label:'Large RD Gap (>200)', value:'+4 mo timeline', color:'danger' });
+        signals.push({ text:`RD Gap: ${fmt(rdGap)}`, color:'badge-danger' });
+      } else if (rdGap > 50) {
+        timelineShift = 2;
+        adjustments.push({ label:'Medium RD Gap (50–200)', value:'+2 mo timeline', color:'warn' });
+        signals.push({ text:`RD Gap: ${fmt(rdGap)}`, color:'badge-warn' });
+      } else {
+        signals.push({ text:`RD Gap: ${fmt(Math.max(0,rdGap))} (small)`, color:'badge-green' });
+      }
+    }
+
+    // ── SERP feature CTR discount ──
+    if (serpPct !== null) {
+      confidence += 7;
+      const discount = 1 - (serpPct / 100) * 0.35;
+      ctrMultiplier *= discount;
+      adjustments.push({ label:`SERP Features (${serpPct}%)`, value:`−${(serpPct*0.35).toFixed(0)}% CTR`, color: serpPct>30?'danger':'warn' });
+      signals.push({ text:`SERP Features: ${serpPct}%`, color: serpPct>30?'badge-danger':'badge-warn' });
+    }
+
+    // ── CPC → commercial intent boost ──
+    if (cpc !== null) {
+      confidence += 5;
+      if (cpc > 3) {
+        commercialMultiplier = 1.2;
+        adjustments.push({ label:`High CPC ($${cpc})`, value:'+20% commercial %', color:'green' });
+        signals.push({ text:`High CPC: $${cpc}`, color:'badge-green' });
+      } else if (cpc > 1) {
+        commercialMultiplier = 1.05;
+        adjustments.push({ label:`Med CPC ($${cpc})`, value:'+5% commercial %', color:'green' });
+      } else if (cpc < 0.3) {
+        commercialMultiplier = 0.8;
+        adjustments.push({ label:`Low CPC ($${cpc})`, value:'−20% commercial %', color:'warn' });
+        signals.push({ text:`Low CPC: $${cpc}`, color:'badge-warn' });
+      }
+    }
+
+    confidence = Math.min(confidence, 92);
+  }
+
+  return { reachMultiplier, ctrMultiplier, commercialMultiplier, timelineShift, confidence, adjustments, signals };
+}
+
+// ─────────────────────────────────────────
+//  RENDER AHREFS ANALYSIS PANELS
+// ─────────────────────────────────────────
+function renderAhrefsAnalysis(adj) {
+  if (mode !== 'advanced') return;
+
+  const clientDR = $v('clientDR'), compDR = $v('compDR');
+  const clientRD = $v('clientRD'), compRD = $v('compRD');
+  const avgKD    = $v('avgKD');
+  const cpc      = $v('avgCPC');
+
+  // DR gauge
+  const drWrap = document.getElementById('drGaugeWrap');
+  if (clientDR !== null || compDR !== null) {
+    const cd = clientDR || 0, co = compDR || 0;
+    drWrap.innerHTML = `
+      <div style="display:flex;justify-content:space-between;margin-bottom:.5rem;font-size:.82rem;">
+        <span>Client DR <strong style="color:var(--accent)">${cd}</strong></span>
+        <span>Comp Avg DR <strong style="color:var(--fg2)">${co}</strong></span>
+      </div>
+      <div class="kd-bar-wrap">
+        <div class="kd-bar-label"><span>0</span><span>100</span></div>
+        <div class="kd-bar-track" style="height:10px;">
+          <div class="kd-bar-fill" style="width:${cd}%;background:linear-gradient(90deg,var(--indigo),var(--accent));"></div>
+        </div>
+        <div style="margin-top:.3rem;font-size:.75rem;color:var(--fg2)">Client</div>
+        <div class="kd-bar-track" style="height:10px;margin-top:.4rem;">
+          <div class="kd-bar-fill" style="width:${co}%;background:var(--border);"></div>
+        </div>
+        <div style="margin-top:.3rem;font-size:.75rem;color:var(--fg2)">Competitor Avg</div>
+      </div>
+      <div class="badge ${(co-cd)>10?'badge-danger':(co-cd)>0?'badge-warn':'badge-green'}" style="margin-top:.75rem;">
+        DR Gap: ${co > cd ? co-cd + ' pts behind' : Math.abs(co-cd) + ' pts ahead'}
+      </div>`;
+  } else {
+    drWrap.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter DR values above</div>';
+  }
+
+  // KD bars
+  const kdWrap = document.getElementById('kdBarsWrap');
+  if (avgKD !== null) {
+    const probs = clientDR !== null ?
+      (clientDR >= 50 ? [75,40,15] : clientDR >= 30 ? [55,22,7] : [30,10,3]) :
+      (avgKD <= 30 ? [55,25,8] : avgKD <= 60 ? [35,18,6] : [15,7,2]);
+    const labels = ['Easy KD <30','Med KD 30–60','Hard KD 60+'];
+    const colors = ['var(--success)','var(--warn)','var(--danger)'];
+    kdWrap.innerHTML = labels.map((l,i) => `
+      <div style="margin-bottom:.6rem;">
+        <div class="kd-bar-label"><span>${l}</span><span>${probs[i]}%</span></div>
+        <div class="kd-bar-track"><div class="kd-bar-fill" style="width:${probs[i]}%;background:${colors[i]};"></div></div>
+      </div>`).join('') +
+      `<div style="font-size:.75rem;color:var(--fg2);margin-top:.5rem;">Your avg KD: <strong style="color:var(--fg)">${avgKD}</strong></div>`;
+  } else {
+    kdWrap.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter KD above</div>';
+  }
+
+  // Backlink gap
+  const blWrap = document.getElementById('backlinkGapWrap');
+  if (clientRD !== null || compRD !== null) {
+    const cr = clientRD || 0, co2 = compRD || 0, gap = co2 - cr;
+    const severity = gap > 200 ? 'danger' : gap > 50 ? 'warn' : 'green';
+    const label = gap > 200 ? 'Large Gap' : gap > 50 ? 'Medium Gap' : gap > 0 ? 'Small Gap' : 'No Gap';
+    blWrap.innerHTML = `
+      <div style="font-size:.85rem;margin-bottom:.75rem;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.3rem;">
+          <span style="color:var(--fg2)">Client Ref. Domains</span><strong>${fmt(cr)}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:var(--fg2)">Competitor Avg</span><strong>${fmt(co2)}</strong>
+        </div>
+      </div>
+      <div class="badge badge-${severity}" style="margin-bottom:.5rem;">${label}: ${fmt(Math.abs(gap))} domains</div>
+      ${gap > 0 ? `<div style="font-size:.75rem;color:var(--fg2);margin-top:.5rem;">Timeline impact: +${adj.timelineShift} months added</div>` : ''}`;
+  } else {
+    blWrap.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter domain data above</div>';
+  }
+
+  // Commercial intent
+  const ciWrap = document.getElementById('commercialIntentWrap');
+  if (cpc !== null) {
+    const tier = cpc > 3 ? {label:'High',color:'badge-green',note:'Strong purchase intent'}
+                 : cpc > 1 ? {label:'Medium',color:'badge-warn',note:'Mixed intent keywords'}
+                 : {label:'Low',color:'badge-danger',note:'Informational bias'};
+    ciWrap.innerHTML = `
+      <div style="font-size:2rem;font-family:'Bebas Neue',sans-serif;letter-spacing:-.02em;">$${cpc.toFixed(2)} avg CPC</div>
+      <div class="badge ${tier.color}" style="margin:.5rem 0;">${tier.label} Commercial Intent</div>
+      <div style="font-size:.78rem;color:var(--fg2);">${tier.note}</div>
+      <div style="font-size:.78rem;color:var(--fg2);margin-top:.4rem;">Multiplier applied to commercial %: ×${adj.commercialMultiplier.toFixed(2)}</div>`;
+  } else {
+    ciWrap.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--fg2);font-size:.85rem;">Enter CPC above</div>';
+  }
+
+  // Adjustment summary
+  const summaryEl = document.getElementById('adjustmentSummary');
+  const itemsEl   = document.getElementById('adjustmentItems');
+  if (adj.adjustments.length > 0) {
+    summaryEl.style.display = '';
+    itemsEl.innerHTML = adj.adjustments.map(a => `
+      <div class="badge ${a.color==='green'?'badge-green':a.color==='danger'?'badge-danger':a.color==='warn'?'badge-warn':'badge-indigo'}">
+        ${a.label}: <strong>${a.value}</strong>
+      </div>`).join('');
+  } else {
+    summaryEl.style.display = 'none';
+  }
+
+  // Signals
+  document.getElementById('ahrefsSignals').innerHTML = adj.signals.map(s =>
+    `<span class="badge ${s.color}">${s.text}</span>`).join('');
+}
+
+// ─────────────────────────────────────────
+//  SCENARIO SWITCH
+// ─────────────────────────────────────────
+function switchScenario(s, e) {
+  currentScenario = s;
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+  if (e) e.target.classList.add('active');
+  const pre = SCENARIO_DEFAULTS[s];
+  document.getElementById('scenarioTop5Reach').value  = pre.top5reach;
+  document.getElementById('scenarioTop5CTR').value    = pre.top5ctr;
+  document.getElementById('scenarioTop10Reach').value = pre.top10reach;
+  document.getElementById('scenarioTop10CTR').value   = pre.top10ctr;
+  document.getElementById('timeline').textContent     = pre.timeline;
+  calculate();
+}
+
+// ─────────────────────────────────────────
+//  MAIN CALCULATE
+// ─────────────────────────────────────────
+function calculate() {
+  const cvr        = ($v('conversionRate') || 3.2) / 100;
+  const aov        = $v('aov') || 285;
+  const commPct    = ($v('commercialPercent') || 42) / 100;
+  const currKw     = $v('currentKeywords') || 0;
+  const currVol    = $v('currentVolume') || 0;
+  const gapKw      = $v('gapKeywords') || 0;
+  const gapVol     = $v('gapVolume') || 0;
+  const currTraff  = $v('currentTraffic') || 0;
+  const seoInv     = $v('seoInvestment') || 5000;
+
+  const totalKw  = currKw + gapKw;
+  const totalVol = currVol + gapVol;
+  document.getElementById('totalOpportunity').textContent =
+    `${fmt(totalKw)} Keywords · ${fmt(totalVol)} Volume`;
+  document.getElementById('currentTrafficDisplay') &&
+    (document.getElementById('currentTrafficDisplay').textContent = fmt(currTraff));
+
+  // Ahrefs adjustments
+  const adj = computeAhrefsAdjustments();
+  renderAhrefsAnalysis(adj);
+
+  // Confidence score display
+  const confPct = adj.confidence;
+  document.getElementById('confScore').textContent = confPct + '% confidence';
+  document.getElementById('confFill').style.width = confPct + '%';
+  document.getElementById('confNote').textContent =
+    confPct >= 75 ? '✅ High data quality — projections well-calibrated'
+    : confPct >= 55 ? '⚠️ Moderate quality — add Ahrefs data to improve'
+    : '📊 Basic estimate — enter Ahrefs data for accuracy';
+
+  // Build 3 scenarios — two-band model (pos 1-5 + pos 6-10)
+  const scenarios = ['conservative','moderate','optimistic'];
+  const results = {};
+
+  scenarios.forEach(sc => {
+    const pre = SCENARIO_DEFAULTS[sc];
+
+    // Apply Ahrefs reach multiplier to both bands
+    const top5reach  = Math.min((pre.top5reach  / 100) * adj.reachMultiplier, 0.85);
+    const top5ctr    = Math.min((pre.top5ctr    / 100) * adj.ctrMultiplier,   0.45);
+    const top10reach = Math.min((pre.top10reach / 100) * adj.reachMultiplier, 0.85);
+    const top10ctr   = Math.min((pre.top10ctr   / 100) * adj.ctrMultiplier,   0.15);
+    const comm       = Math.min(commPct * adj.commercialMultiplier, 0.9);
+
+    // ── Current rankings (4-50): split traffic by band ──
+    // Top 5 band traffic from current ranking keywords
+    const currTop5Traff  = currVol * comm * top5reach * top5ctr;
+    // Top 6-10 band — additional keywords that land here instead of top 5
+    const currTop10Traff = currVol * comm * top10reach * top10ctr;
+    // Incremental vs existing baseline (positions 4-50 already generate some traffic)
+    const currIncrTraff  = Math.max(0, (currTop5Traff + currTop10Traff) - currTraff);
+
+    // ── Gap keywords: 100% incremental across both bands ──
+    const gapTop5Traff  = gapVol * comm * top5reach  * top5ctr;
+    const gapTop10Traff = gapVol * comm * top10reach * top10ctr;
+    const gapIncrTraff  = gapTop5Traff + gapTop10Traff;
+
+    const incrTraff = currIncrTraff + gapIncrTraff;
+    const orders    = incrTraff * cvr;
+    const monthly   = orders * aov;
+
+    const sm     = seasonalMultipliers();
+    const annual = sm.reduce((acc, m) => acc + monthly * m, 0);
+
+    results[sc] = { 
+      traffic: incrTraff, monthly, annual,
+      top5Traff: currTop5Traff + gapTop5Traff,
+      top10Traff: currTop10Traff + gapTop10Traff,
+      top5reach, top5ctr, top10reach, top10ctr, comm
+    };
+  });
+
+  // Update result boxes
+  document.getElementById('revenueConservative').textContent  = fmtC(results.conservative.monthly);
+  document.getElementById('annualConservative').textContent   = fmtC(results.conservative.annual);
+  document.getElementById('revenueModerate').textContent      = fmtC(results.moderate.monthly);
+  document.getElementById('annualModerate').textContent       = fmtC(results.moderate.annual);
+  document.getElementById('revenueOptimistic').textContent    = fmtC(results.optimistic.monthly);
+  document.getElementById('annualOptimistic').textContent     = fmtC(results.optimistic.annual);
+
+  // Timeline badges with shift
+  const shift = adj.timelineShift;
+  document.getElementById('consTimeBadge').textContent = shift > 0 ? `${3+shift}–${6+shift} mo` : '3–6 mo';
+  document.getElementById('modTimeBadge').textContent  = shift > 0 ? `${6+shift}–${12+shift} mo` : '6–12 mo';
+  document.getElementById('optTimeBadge').textContent  = shift > 0 ? `${12+shift}+ mo` : '12+ mo';
+
+  // ROI
+  const totalInv = seoInv * 12;
+  const gain     = results.moderate.annual;
+  const roi      = totalInv > 0 ? (((gain - totalInv) / totalInv) * 100).toFixed(1) : 0;
+  const payback  = results.moderate.monthly > seoInv
+    ? Math.ceil(totalInv / (results.moderate.monthly - seoInv))
+    : results.moderate.monthly > 0 ? '12+' : 'N/A';
+
+  document.getElementById('totalInvestment').textContent = fmtC(totalInv);
+  document.getElementById('revenueGain').textContent     = fmtC(gain);
+  document.getElementById('paybackPeriod').textContent   = (typeof payback === 'number') ? payback + ' months' : payback;
+  const roiEl = document.getElementById('roiPercentage');
+  roiEl.textContent   = roi + '%';
+  roiEl.className = 'mcard-value ' + (roi >= 100 ? 'green' : roi >= 0 ? 'magenta' : '');
+  roiEl.style.color   = roi < 0 ? 'var(--danger)' : '';
+
+  // Seasonality peak
+  const sm2 = seasonalMultipliers();
+  document.getElementById('peakImpact').textContent =
+    '+' + (((Math.max(...sm2) - 1) * 100).toFixed(0)) + '%';
+
+  // Update charts
+  updateCharts(currTraff, results);
+}
+
+// ─────────────────────────────────────────
+// ─────────────────────────────────────────
+//  CHARTS
+// ─────────────────────────────────────────
+const CHART_OPTS_BASE = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{
+    legend:{display:false},
+    tooltip:{
+      backgroundColor:'rgba(26,26,26,.95)',
+      titleColor:'#fff', bodyColor:'#fff',
+      borderColor:'#3a3a3a', borderWidth:1, padding:10, displayColors:false
+    }
+  },
+  scales:{
+    y:{ beginAtZero:true, grid:{color:'rgba(58,58,58,.4)'}, ticks:{color:'#b0b0b0'} },
+    x:{ grid:{display:false}, ticks:{color:'#b0b0b0'} }
+  }
+};
+
+function updateCharts(baseline, results) {
+  // Traffic chart
+  if (trafficChart) trafficChart.destroy();
+  trafficChart = new Chart(document.getElementById('trafficChart'), {
+    type:'bar',
+    data:{
+      labels:['Current','Conservative','Moderate','Optimistic'],
+      datasets:[{
+        data:[baseline, baseline+results.conservative.traffic, baseline+results.moderate.traffic, baseline+results.optimistic.traffic],
+        backgroundColor:['rgba(102,16,242,.6)','rgba(102,16,242,.85)','rgba(0,255,0,.75)','rgba(255,0,255,.75)'],
+        borderColor:['#6610f2','#6610f2','#00ff00','#ff00ff'],
+        borderWidth:2, borderRadius:6
+      }]
+    },
+    options:{...CHART_OPTS_BASE,
+      plugins:{...CHART_OPTS_BASE.plugins,
+        tooltip:{...CHART_OPTS_BASE.plugins.tooltip,
+          callbacks:{label: ctx => fmt(ctx.parsed.y)+' visitors'}}},
+      scales:{...CHART_OPTS_BASE.scales,
+        y:{...CHART_OPTS_BASE.scales.y, ticks:{color:'#b0b0b0',callback:v=>fmt(v)}}}
+    }
+  });
+
+  // Revenue chart
+  if (revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type:'bar',
+    data:{
+      labels:['Conservative','Moderate','Optimistic'],
+      datasets:[{
+        data:[results.conservative.annual, results.moderate.annual, results.optimistic.annual],
+        backgroundColor:['rgba(102,16,242,.8)','rgba(0,255,0,.75)','rgba(255,0,255,.75)'],
+        borderColor:['#6610f2','#00ff00','#ff00ff'],
+        borderWidth:2, borderRadius:6
+      }]
+    },
+    options:{...CHART_OPTS_BASE,
+      plugins:{...CHART_OPTS_BASE.plugins,
+        tooltip:{...CHART_OPTS_BASE.plugins.tooltip,
+          callbacks:{label: ctx => fmtC(ctx.parsed.y)+' annual'}}},
+      scales:{...CHART_OPTS_BASE.scales,
+        y:{...CHART_OPTS_BASE.scales.y, ticks:{color:'#b0b0b0',callback:v=>fmtC(v)}}}
+    }
+  });
+}
+
+// ─────────────────────────────────────────
+//  MONTE CARLO
+// ─────────────────────────────────────────
+function runMonteCarlo() {
+  const iters   = parseInt(document.getElementById('monteCarloIterations').value) || 1000;
+  const cvr     = ($v('conversionRate') || 3.2) / 100;
+  const aov     = $v('aov') || 285;
+  const comm    = ($v('commercialPercent') || 42) / 100;
+  const totVol  = ($v('currentVolume')||0) + ($v('gapVolume')||0);
+  const currT   = $v('currentTraffic') || 0;
+  const adj     = computeAhrefsAdjustments();
+  const sm      = seasonalMultipliers();
+
+  const monthly = Array.from({length:12}, () => []);
+
+  const currVol2  = $v('currentVolume') || 0;
+  const gapVol2   = $v('gapVolume') || 0;
+
+  // Read current scenario's band values as targets
+  const targetTop5Reach  = ($v('scenarioTop5Reach')  || 20) / 100;
+  const targetTop5CTR    = ($v('scenarioTop5CTR')    || 15) / 100;
+  const targetTop10Reach = ($v('scenarioTop10Reach') || 35) / 100;
+  const targetTop10CTR   = ($v('scenarioTop10CTR')   || 4)  / 100;
+
+  for (let i = 0; i < iters; i++) {
+    const growthRate  = 0.6 + Math.random() * 0.8;
+    const startDelay  = Math.floor(Math.random() * 3);
+    for (let m = 0; m < 12; m++) {
+      const prog = 1 - Math.exp(-growthRate * Math.max(0, m - startDelay) / 6);
+      const rnd  = () => 1 + (Math.random() - 0.5) * 0.3;
+
+      const top5r  = Math.max(0.01, Math.min(0.8,  targetTop5Reach  * adj.reachMultiplier * prog * rnd()));
+      const top5c  = Math.max(0.01, Math.min(0.45, targetTop5CTR    * adj.ctrMultiplier   * prog * rnd()));
+      const top10r = Math.max(0.01, Math.min(0.8,  targetTop10Reach * adj.reachMultiplier * prog * rnd()));
+      const top10c = Math.max(0.01, Math.min(0.12, targetTop10CTR   * adj.ctrMultiplier   * prog * rnd()));
+      const c      = Math.max(0.05, Math.min(0.8,  comm * adj.commercialMultiplier * (1+(Math.random()-.5)*.2)));
+      const cv     = Math.max(0.002, Math.min(0.12, cvr * (1+(Math.random()-.5)*.25)));
+
+      // Two-band traffic: current rankings incremental + gap keywords
+      const currT5   = currVol2 * c * top5r  * top5c;
+      const currT10  = currVol2 * c * top10r * top10c;
+      const currIncr = Math.max(0, currT5 + currT10 - currT);
+      const gapT     = gapVol2 * c * (top5r * top5c + top10r * top10c);
+
+      const rev = Math.max(0, (currIncr + gapT) * cv * aov * sm[m]);
+      monthly[m].push(rev);
+    }
+  }
+
+  const pct = (arr, p) => { const s=[...arr].sort((a,b)=>a-b); return s[Math.floor(s.length*p)]; };
+  const p10 = monthly.map(a => pct(a,.10));
+  const p50 = monthly.map(a => pct(a,.50));
+  const p90 = monthly.map(a => pct(a,.90));
+  const avg = monthly.map(a => a.reduce((s,v)=>s+v,0)/a.length);
+
+  const lm = 11;
+  document.getElementById('monteCarloStats').style.display = '';
+  document.getElementById('mcRange').textContent   = `${fmtC(p10[lm])} – ${fmtC(p90[lm])}`;
+  document.getElementById('mcMedian').textContent  = fmtC(p50[lm]);
+  document.getElementById('mcMean').textContent    = fmtC(avg[lm]);
+  document.getElementById('mcP10').textContent     = fmtC(p10[lm]);
+  document.getElementById('mcP90').textContent     = fmtC(p90[lm]);
+
+  const labels = Array.from({length:12},(_,i)=>`M${i+1}`);
+  if (monteCarloChart) monteCarloChart.destroy();
+  monteCarloChart = new Chart(document.getElementById('monteCarloChart'), {
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        { label:'P90', data:p90, borderColor:'rgba(255,0,255,.85)', backgroundColor:'rgba(255,0,255,.08)', borderWidth:2, fill:'+1', pointRadius:0, tension:.4 },
+        { label:'Expected (P50)', data:p50, borderColor:'rgba(0,255,0,1)', borderWidth:3, fill:false, pointRadius:3, pointBackgroundColor:'#00ff00', tension:.4 },
+        { label:'P10', data:p10, borderColor:'rgba(102,16,242,.85)', backgroundColor:'rgba(102,16,242,.08)', borderWidth:2, fill:false, pointRadius:0, tension:.4 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,position:'top',labels:{color:'#b0b0b0',usePointStyle:true,padding:8,font:{size:10}}},
+        tooltip:{backgroundColor:'rgba(26,26,26,.95)',titleColor:'#fff',bodyColor:'#fff',borderColor:'#3a3a3a',borderWidth:1,padding:10,callbacks:{label:ctx=>ctx.dataset.label+': '+fmtC(ctx.parsed.y)}}
+      },
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(58,58,58,.3)'},ticks:{color:'#b0b0b0',callback:v=>fmtC(v)}},
+        x:{grid:{color:'rgba(58,58,58,.2)'},ticks:{color:'#b0b0b0'}}
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────
+//  EVENT LISTENERS
+// ─────────────────────────────────────────
+document.querySelectorAll('input,select').forEach(el => el.addEventListener('input', calculate));
+calculate();
+</script>
+</body>
+</html>
